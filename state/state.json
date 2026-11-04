@@ -1,0 +1,68 @@
+{
+  "date": "2026-11-04",
+  "mtpi": -0.6,
+  "regime": "CASH",
+  "rotation": 1.0,
+  "majeur": "ETH",
+  "trash": -1.0,
+  "small_caps": false,
+  "trash_pct": 0.0,
+  "alloc": "CASH · Dominant Denominator",
+  "states": {
+    "EWO (5 32)": -1,
+    "MTF-EMA (7 19)": -1,
+    "Sebastine (9 6)": -1,
+    "Z-Score (22 15)": -1,
+    "DFT (6 29)": 1,
+    "WonderTrend (20)": -1,
+    "TrendChange (11 35)": 1,
+    "MA Band (20 5)": -1,
+    "LNL (Tight)": -1,
+    "DEGA (21..)": -1
+  },
+  "rot_states": {
+    "DEGA (23..)": 1,
+    "Sebastine (16 15)": 1,
+    "TrendChange (16 40)": 1,
+    "Z-Score (27 18)": 1,
+    "WonderTrend (def)": 1
+  },
+  "trash_states": {
+    "DFT (14 14)": -1,
+    "EWO (7 26)": -1,
+    "MTF-EMA (12 13)": -1,
+    "Trend Strength (21)": -1,
+    "Kalman Hull (3..)": -1
+  },
+  "new_bars": {
+    "2D": false,
+    "3D": false,
+    "W": false
+  },
+  "exposure": {
+    "CASH": 1.0
+  },
+  "reconstructed": {
+    "2026-07-01 -> 2026-09-29": 89
+  },
+  "reciprocity": {
+    "by_block": {
+      "MTPI": {
+        "n": 5,
+        "ok": 4
+      }
+    },
+    "mismatches": [
+      {
+        "date": "2024-07-25",
+        "block": "MTPI",
+        "label": "DEGA (21..)",
+        "mine": 1,
+        "his": -1
+      }
+    ],
+    "n": 5,
+    "ok": 4,
+    "pct": 80.0
+  }
+}

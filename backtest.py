@@ -1,0 +1,92 @@
+"""
+backtest.py — Recalcule les courbes d'équité à chaque run et écrit docs/backtest.json.
+Courbes : système majeurs (cash hors marché) · système + or (or si tendance, hors marché)
+· système + alts · BTC conservé. Frais par transaction, signaux appliqués avec une barre de retard.
+"""
+import numpy as np, pandas as pd, indicators as I, strategy as st
+
+FEE = 0.00045                       # taker Hyperliquid
+RECENT = "2025-01-01"              # début de la fenêtre « récente » affichée
+
+
+def _metrics(r, sub=None):
+    rr = r if sub is None else r.loc[sub[0]:sub[1]]
+    if len(rr) < 5:
+        return None
+    nav = (1 + rr).cumprod()
+    dd = float((nav / nav.cummax() - 1).min())
+    yrs = max((rr.index[-1] - rr.index[0]).days / 365, 1e-9)
+    cagr = float(nav.iloc[-1] ** (1 / yrs) - 1)
+    dt = rr.index.to_series().diff().dt.days.median()          # espacement médian des barres
+    ppy = 365.0 / dt if dt and dt > 0 else 365.0               # périodes par an
+    vol = rr.std() * np.sqrt(ppy)
+    sh = float((rr.mean() * ppy) / vol) if vol > 0 else 0.0
+    return {"perf": round((float(nav.iloc[-1]) - 1) * 100, 1),
+            "cagr": round(cagr * 100, 1), "sharpe": round(sh, 2),
+            "dd": round(dd * 100, 1), "x": round(float(nav.iloc[-1]), 2)}
+
+
+def run(series):
+    total, btc, eth, ethbtc = series["total"], series["btc"], series["eth"], series["ethbtc"]
+    gold = series.get("gold")
+    idx = total.index
+
+    _, regime, _ = I.build_tpi(total, st.MTPI_SPEC, entry=st.ENTRY, exit=st.EXIT)
+    long = (regime.reindex(idx).ffill() > 0).astype(float)
+    es, _, _ = I.build_tpi(ethbtc, st.ROT_SPEC, entry=0.0, exit=0.0)
+    es = es.reindex(idx, method="ffill").fillna(0)
+    w_eth = pd.Series(np.where(es > 0, 0.8, 0.2), index=idx)
+    w_btc = 1 - w_eth
+    ret_btc = btc["close"].reindex(idx, method="ffill").pct_change().fillna(0)
+    ret_eth = eth["close"].reindex(idx, method="ffill").pct_change().fillna(0)
+    _dt = pd.Series(idx).diff().dt.days.median() or 1          # pas de temps (1 j, 2 j…)
+    _maw = max(2, int(round(50 / _dt)))                        # MA ≈ 50 jours quel que soit le pas
+
+    def build(gold_on):
+        we, wb, lg = w_eth.shift(1).fillna(0), w_btc.shift(1).fillna(0), long.shift(1).fillna(0)
+        cryp = lg * (we * ret_eth + wb * ret_btc)
+        gld = pd.Series(0.0, index=idx); gw = pd.Series(0.0, index=idx)
+        if gold_on and gold is not None:
+            gc = gold["close"].reindex(idx, method="ffill")
+            rg = gc.pct_change().fillna(0)
+            gup = (gc > gc.rolling(_maw).mean()).astype(float)
+            gw = (1 - lg) * gup.shift(1).fillna(0)
+            gld = gw * rg
+        turn = (lg * we).diff().abs().fillna(0) + (lg * wb).diff().abs().fillna(0) + gw.diff().abs().fillna(0)
+        return cryp + gld - turn * FEE
+
+    raw, goldv = build(False), build(True)
+    curves = {"raw": raw, "gold": goldv, "btc": ret_btc}
+    alts_stats = None
+    if series.get("others_d") is not None:
+        try:
+            import backtest_alts as ba
+            curves["full"], alts_stats = ba.sleeve(series, idx, long, w_eth, FEE)
+        except Exception as e:
+            print(f"[backtest alts] {e}")
+
+    # départ commun = premier jour de prix BTC/ETH : avant, les rendements valent 0 et
+    # diluaient CAGR et Sharpe "depuis l'origine" (TOTAL commence en 2015, Binance en 2018)
+    start = max(idx[0], btc.index.min(), eth.index.min())
+    idx = idx[idx >= start]
+    curves = {k: r.loc[start:] for k, r in curves.items()}
+
+    # equity normalisée à 100, sous-échantillonnée (~180 pts) pour le JSON
+    step = max(1, len(idx) // 180)
+    sidx = idx[::step]
+    if sidx[-1] != idx[-1]:
+        sidx = sidx.append(idx[-1:])          # garde le dernier point (= métriques)
+    out_curves = {}
+    for k, r in curves.items():
+        nav = (1 + r).cumprod() * 100
+        out_curves[k] = [round(float(v), 2) for v in nav.reindex(sidx).values]
+
+    return {
+        "dates": [str(d.date()) for d in sidx],
+        "curves": out_curves,
+        "metrics_full": {k: _metrics(r) for k, r in curves.items()},
+        "metrics_window": {k: _metrics(r, (RECENT, str(idx[-1].date()))) for k, r in curves.items()},
+        "window": [RECENT, str(idx[-1].date())], "alts": alts_stats,
+        "metrics_2020": {k: _metrics(r, ("2020-01-01", str(idx[-1].date()))) for k, r in curves.items()},
+        "as_of": str(idx[-1].date()),
+    }

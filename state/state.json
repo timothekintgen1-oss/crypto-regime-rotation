@@ -1,10 +1,10 @@
 {
-  "date": "2026-11-10",
-  "mtpi": -0.8,
+  "date": "2026-11-11",
+  "mtpi": -0.9,
   "regime": "CASH",
   "rotation": 0.2,
   "majeur": "ETH",
-  "trash": -0.6,
+  "trash": -1.0,
   "small_caps": false,
   "trash_pct": 0.0,
   "alloc": "CASH · stablecoins",
@@ -15,7 +15,7 @@
     "Z-Score (22 15)": -1,
     "DFT (6 29)": -1,
     "WonderTrend (20)": -1,
-    "TrendChange (11 35)": 1,
+    "TrendChange (11 35)": 0,
     "MA Band (20 5)": -1,
     "LNL (Tight)": -1,
     "DEGA (21..)": -1
@@ -32,10 +32,10 @@
     "EWO (7 26)": -1,
     "MTF-EMA (12 13)": -1,
     "Trend Strength (21)": -1,
-    "Kalman Hull (3..)": 1
+    "Kalman Hull (3..)": -1
   },
   "new_bars": {
-    "2D": false,
+    "2D": true,
     "3D": false,
     "W": false
   },

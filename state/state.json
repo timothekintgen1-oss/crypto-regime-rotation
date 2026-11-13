@@ -1,9 +1,9 @@
 {
-  "date": "2026-11-12",
+  "date": "2026-11-13",
   "mtpi": -0.9,
   "regime": "CASH",
-  "rotation": 0.2,
-  "majeur": "ETH",
+  "rotation": -0.2,
+  "majeur": "BTC",
   "trash": -1.0,
   "small_caps": false,
   "trash_pct": 0.0,
@@ -22,7 +22,7 @@
   },
   "rot_states": {
     "DEGA (23..)": -1,
-    "Sebastine (16 15)": 1,
+    "Sebastine (16 15)": -1,
     "TrendChange (16 40)": 1,
     "Z-Score (27 18)": -1,
     "WonderTrend (def)": 1
@@ -35,8 +35,8 @@
     "Kalman Hull (3..)": -1
   },
   "new_bars": {
-    "2D": false,
-    "3D": true,
+    "2D": true,
+    "3D": false,
     "W": false
   },
   "exposure": {

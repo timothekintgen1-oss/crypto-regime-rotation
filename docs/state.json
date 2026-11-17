@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-16",
+  "date": "2026-11-17",
   "mtpi": -1.0,
   "regime": "CASH",
   "rotation": -0.2,
@@ -35,9 +35,9 @@
     "Kalman Hull (3..)": -1
   },
   "new_bars": {
-    "2D": false,
+    "2D": true,
     "3D": false,
-    "W": true
+    "W": false
   },
   "exposure": {
     "CASH": 1.0
